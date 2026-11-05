@@ -1,0 +1,49 @@
+name: Build Release APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Baixa o código do repositório
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Configura o Java 17 (necessário para o Gradle do Flutter moderno)
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      # 3. Configura o Flutter (usa apenas o canal, SEM flutter-version)
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      # 4. Mostra a versão do Flutter instalada (útil para debug)
+      - name: Flutter version
+        run: flutter --version
+
+      # 5. Instala as dependências do projeto
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 6. Compila o APK em modo release
+      - name: Build APK
+        run: flutter build apk --release
+
+      # 7. Faz upload do APK como artefato para você baixar
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
